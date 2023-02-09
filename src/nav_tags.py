@@ -1,16 +1,15 @@
 #!/usr/bin/python3
-
 import rospy
 import tf
+from std_msgs.msg import Int16MultiArray
 import numpy
 from geometry_msgs.msg import Twist
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from math import atan2, sqrt
 from std_msgs.msg import String
-   
 
-MAX_LIN_VEL = 0.05
-MAX_ANG_VEL = 0.6
+MAX_LIN_VEL = 0.09
+MAX_ANG_VEL = 0.8
 
 GOAL_TOLERANCE = 0.05
 ANGLE_TOLERANCE = 0.1
@@ -23,7 +22,6 @@ param = 0
 twist_msg = Twist()
 finish = False
 distance_achieved = False
-FinalDestinationTagReached=False
 
 DETECTING_SPEED_ROTATION = 0.25
 side_rotation = [1, -1]
@@ -142,19 +140,23 @@ def ar_demo():
         cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
 
         # Set up subscriber for /ar_pose_marker
-        #rospy.loginfo("Subscribing to ar_pose_marker")
+        rospy.loginfo("Subscribing to ar_pose_marker")
+
         rospy.Subscriber("ar_pose_marker", AlvarMarkers, callback)
+        rospy.loginfo("Succesfully subscribed to ar pose markers ")
 
-        rospy.spin()
-        # Creating publisher when X location in reached
-        pub = rospy.Publisher('chatter', String, queue_size=1)
+        pub = rospy.Publisher('chatter',Int16MultiArray, queue_size=10)
         rate = rospy.Rate(10) # 10hz
-        if finish == True:
+        while not rospy.is_shutdown():
+                if finish==True:
+                        hello_str=Int16MultiArray()
+                        hello_str.data = [4,8]
+                        rospy.loginfo(hello_str)
+                        pub.publish(hello_str)
+                        rate.sleep()
+        rospy.spin()
 
-                finish_str = "Reached final destination"
-                rospy.loginfo(finish_str)
-                pub.publish(finish_str)
-                rate.sleep()
+
 
   
 if __name__ == '__main__':
