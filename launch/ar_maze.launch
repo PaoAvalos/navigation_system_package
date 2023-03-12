@@ -5,13 +5,19 @@
     as eval may not contain double underscore expressions, a new argument (eval_underscore_bypass) is defined to by-pass this issue.
     when a namespace is specified, it is also converted into prefix with a trailing slash.
   -->
-  <arg name="marker_ids" default="17" />
+  <arg name="marker_ids" default="10" />
+  <arg name="base_id" default="0" />
   <arg name="__ns" default=""/>
+  <arg name="name_space" default="t1"/>
+
   <arg name="eval_underscore_bypass" value="$(arg __ns)"/>
   <arg if="$(eval eval_underscore_bypass == '')" name="prefix" default=''/>
   <arg unless="$(eval eval_underscore_bypass == '')" name="prefix" default="$(arg __ns)/"/>
+  <!-- <node name="master_discovery" pkg="master_discovery_fkie" type="master_discovery" output="screen"></node>
+  <node name="master_sync" pkg="master_sync_fkie" type="master_sync" output="screen"></node> -->
 
-  <node name="ar_track_alvar" pkg="ar_track_alvar" type="individualMarkersNoKinect" respawn="false" output="screen">
+
+  <node name="$(arg name_space)_ar_track_alvar" pkg="ar_track_alvar" type="individualMarkersNoKinect" respawn="false" output="screen">
     <param name="marker_size"           type="double" value="6.8" />
     <param name="max_new_marker_error"  type="double" value="0.08" />
     <param name="max_track_error"       type="double" value="0.2" />
@@ -20,9 +26,14 @@
     <remap from="camera_info"   to="camera/color/camera_info" />
   </node> 
 
+  <!-- <node name="$(arg name_space)robotont_client" pkg="robotont_thesis_pkg" type="robotont_client.py" output="screen">
+  </node>  -->
+
  <include file = "$(find robotont_laserscan_to_distance)/launch/distance_from_depth_image.launch"/>
-  <node name="nav_tags" pkg="ar_maze" type="nav_tags.py" output="screen">
+  <node name="nav_tags" pkg="robotont_thesis_pkg" type="nav_tags.py" output="screen">
     <param name="marker_ids" type="string" value="$(arg marker_ids)" />
+    <param name="base_id" type="string" value="$(arg base_id)" />
+
   </node>
-  <node name="nav_if_walls" pkg="ar_maze" type="nav_if_walls.py" output="screen"/>
+  <node name="nav_if_walls" pkg="robotont_thesis_pkg" type="nav_if_walls.py" output="screen"/>
 </launch> 
