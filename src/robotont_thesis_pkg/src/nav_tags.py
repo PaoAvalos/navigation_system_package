@@ -8,6 +8,7 @@ from ar_track_alvar_msgs.msg import AlvarMarkers
 from math import atan2, sqrt
 from std_msgs.msg import String
 from std_srvs.srv import Trigger, TriggerRequest
+import movebase_client
 
 MAX_LIN_VEL = 0.07
 MAX_ANG_VEL = 0.5
@@ -21,9 +22,8 @@ last_heartbeat = 0
 k=0
 i=0
 param = 0
+tags_finished = False
 twist_msg = Twist()
-finished= False
-back_to_base=False
 distance_achieved = False
 side_rotation = [1, -1]
 calc_time_dur = 0
@@ -34,7 +34,7 @@ rospy.set_param('ar_present', True)
 def callback(data):
         global last_heartbeat, marker_ids, base_id, k,i, param, twist_msg, cmd_vel_pub, distance_achieved, finished,back_to_base
         
-        if back_to_base:
+        if movebase_client.back_to_base== True:
                 rospy.loginfo_once("back to base triggered")
 
                 if len(data.markers)==0 and i<len(base_id):
@@ -115,6 +115,7 @@ def callback(data):
                                 
                                 break
 
+        # if going to goal and not base 
         else:
 
                 if len(data.markers)==0 and k<len(marker_ids):
@@ -191,7 +192,8 @@ def callback(data):
                                         distance_achieved = False
                 elif k>=len(base_id):
                         rospy.set_param('ar_present', True)
-                        finished=True
+                        movebase_client.finished=True
+                        tags_finished=True
                         rospy.loginfo_once("Finished marker ids ")
                         
 
@@ -254,27 +256,6 @@ def ar_demo():
 
         rospy.Subscriber("ar_pose_marker", AlvarMarkers, callback)
         rospy.loginfo("Succesfully subscribed to ar pose markers ")
-        # Wait for the sorting server to become available
-        rospy.wait_for_service('sorting')
-
-        # Create a proxy for the sorting service
-        sorting_service = rospy.ServiceProxy('sorting', Trigger)
-
-        # Check if the robot is in position
-        while not rospy.is_shutdown():
-                if finished==True:
-                        rospy.loginfo("Starting sorting process...")
-                        # Send a request to start the sorting process
-                        response = sorting_service(TriggerRequest())
-                        if response.success:
-                                rospy.loginfo("Sorting process done.")
-                                back_to_base= True
-                                break
-                              
+                          
         rospy.spin()
   
-if __name__ == '__main__':
-    try:
-        ar_demo()
-    except rospy.ROSInterruptException:
-        pass

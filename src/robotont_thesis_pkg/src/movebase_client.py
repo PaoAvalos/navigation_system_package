@@ -4,6 +4,7 @@ import rospy
 import actionlib
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from std_srvs.srv import Trigger, TriggerRequest
+import nav_tags 
 
 finished=False
 back_to_base=False
@@ -44,18 +45,33 @@ def movebase_client():
 
     # Send the goal and wait for completion
     client.send_goal(goal)
-    wait = client.wait_for_result()
+    client.wait_for_result()
 
     # how to assigned finished only when result is positive?
     if back_to_base== False:
-        finished= True
+        nav_tags.ar_demo()
+        if nav_tags.finished==True:
+            finished=True
+            back_to_base=True
+            movebase_client()
+
+    #if going back to base, start nav_tags again
+    else:
+        nav_tags.ar_demo()
+
     return client.get_result()
 
 def main():
     global finished, back_to_base
     rospy.init_node('movebase_client')
 
-    move= movebase_client()
+    should_i_start= input("Do you want to start the sorting process? (y/n)")
+    if should_i_start=="y":
+        move= movebase_client()
+    else:
+        rospy.loginfo("launched but I have not started moving")
+        return
+    
     # Wait for the sorting server to become available
     rospy.wait_for_service('sorting')
 

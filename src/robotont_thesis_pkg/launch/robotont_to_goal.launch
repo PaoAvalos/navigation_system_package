@@ -1,0 +1,99 @@
+<?xml version="1.0" ?>
+
+<launch>
+  <!--
+    '__ns' is needed as an explicit argument because it does not propagate as an argument to the included launch files.
+    as eval may not contain double underscore expressions, a new argument (eval_underscore_bypass) is defined to by-pass this issue.
+    when a namespace is specified, it is also converted into prefix with a trailing slash.
+  -->
+
+  <arg name="__ns" default=""/>
+  <arg name="eval_underscore_bypass" value="$(arg __ns)"/>
+  <arg if="$(eval eval_underscore_bypass == '')" name="prefix" default=''/> 
+  <arg unless="$(eval eval_underscore_bypass == '')" name="prefix" default="$(arg __ns)/"/>
+  <arg name="mapping_method" default="gmapping"/>
+  <param name="odom/child_frame" value="base_footprint"/>
+
+  <arg name="marker_ids" default="10" />
+  <arg name="base_id" default="0" />
+  <arg name="name_space" default="t1"/>
+  
+<!-- Launching the amcl node with correct parameters -->
+
+<node pkg="amcl" type="amcl" name="amcl">
+
+ <param name="odom_model_type" value="diff"/>
+  <param name="odom_alpha5" value="0.1"/>
+  <param name="gui_publish_rate" value="10.0"/>
+  <param name="laser_max_beams" value="60"/>
+  <param name="min_particles" value="500"/>
+  <param name="max_particles" value="2000"/>
+  <param name="kld_err" value="0.05"/>
+  <param name="kld_z" value="0.99"/>
+  <param name="odom_alpha1" value="0.2"/>
+  <param name="odom_alpha2" value="0.2"/>
+  <!-- translation std dev, m -->
+  <param name="odom_alpha3" value="0.2"/>
+  <param name="odom_alpha4" value="0.2"/>
+  <param name="laser_z_hit" value="0.5"/>
+  <param name="laser_z_short" value="0.05"/>
+  <param name="laser_z_max" value="0.05"/>
+  <param name="laser_z_rand" value="0.5"/>
+  <param name="laser_sigma_hit" value="0.2"/>
+  <param name="laser_lambda_short" value="0.1"/>
+  <param name="laser_model_type" value="likelihood_field"/>
+  <!-- <param name="laser_model_type" value="beam"/> -->
+  <param name="laser_likelihood_max_dist" value="2.0"/>
+  <param name="update_min_d" value="0.25"/>
+  <param name="update_min_a" value="0.2"/>
+  <param name="odom_frame_id" value="odom"/>
+  <param name="resample_interval" value="1"/>
+  <param name="transform_tolerance" value="1"/>
+  <param name="recovery_alpha_slow" value="0.0"/>
+  <param name="recovery_alpha_fast" value="0.0"/>
+</node>
+
+<!-- Launching the demo -->
+
+<node pkg="tf" type="static_transform_publisher" name="base_link_to_lidar" args="0 0 0.1 0 0 0 1 base_link laser 100" />
+
+<node pkg="tf" type="static_transform_publisher" name="footprint_to_base" args="0 0 0 0 0 0 1 base_footprint base_link 100" />
+
+  <!-- navigation method-->
+  <include file="$(find robotont_demos)/launch/2d_slam_navigation.launch">
+    <arg name="__ns" value="$(arg __ns)"/>
+    <param name="meter_scoring"  value="True"/>
+  </include>
+
+ 
+
+
+<!-- Uncomment to use the master discovery and sync nodes -->
+  <!-- <node pkg="fkie_master_discovery" type="master_discovery" name="master_discovery" output="screen" />
+  <node pkg="fkie_master_sync" type="master_sync" name="master_sync" output="screen" /> -->
+
+
+<!-- Launching necessary nodes for the AR tags tracking  -->
+
+  <node name="$(arg name_space)_ar_track_alvar" pkg="ar_track_alvar" type="individualMarkersNoKinect" respawn="false" output="screen">
+    <param name="marker_size"           type="double" value="6.8" />
+    <param name="max_new_marker_error"  type="double" value="0.08" />
+    <param name="max_track_error"       type="double" value="0.2" />
+    <param name="output_frame"          type="string" value="$(arg prefix)camera_link" />
+    <remap from="camera_image"  to="camera/color/image_raw" />
+    <remap from="camera_info"   to="camera/color/camera_info" />
+  </node> 
+
+<!-- Here is the robotont_client when using the ar_track_alvar node, BUT will make a single client node -->
+  <!-- <node name="$(arg name_space)robotont_client" pkg="robotont_thesis_pkg" type="robotont_client.py" output="screen">
+  </node>  -->
+
+
+ <include file = "$(find robotont_laserscan_to_distance)/launch/distance_from_depth_image.launch"/>
+  <node name="nav_tags" pkg="robotont_thesis_pkg" type="nav_tags.py" output="screen">
+    <param name="marker_ids" type="string" value="$(arg marker_ids)" />
+    <param name="base_id" type="string" value="$(arg base_id)" />
+
+  </node>
+  
+</launch>
