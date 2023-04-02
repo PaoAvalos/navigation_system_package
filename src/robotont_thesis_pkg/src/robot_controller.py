@@ -1,15 +1,17 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
+
 import rospy
+import actionlib
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from std_srvs.srv import Trigger, TriggerRequest
 import tf
-from std_msgs.msg import Int16MultiArray
 import numpy
 from geometry_msgs.msg import Twist
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from math import atan2, sqrt
 from std_msgs.msg import String
-from std_srvs.srv import Trigger, TriggerRequest
-import robotont_thesis.src.robotont_thesis_pkg.src.robot_controller as robot_controller
 
+#parameters for AR tag detection
 MAX_LIN_VEL = 0.07
 MAX_ANG_VEL = 0.5
 
@@ -18,11 +20,11 @@ ANGLE_TOLERANCE = 0.1
 GOAL_DIST_FROM_MARKER = 0.4
 DETECTING_SPEED_ROTATION = 0.25
 
+
 last_heartbeat = 0
 k=0
 i=0
 param = 0
-tags_finished = False
 twist_msg = Twist()
 distance_achieved = False
 side_rotation = [1, -1]
@@ -31,10 +33,19 @@ moving = True
 rotation = False
 rospy.set_param('ar_present', True)
 
+#global variables
+tag_goal_finished=False
+finished=False
+back_to_base=False
+in_base=False
+
+
+#adding functions for ar tag detection
 def callback(data):
-        global last_heartbeat, marker_ids, base_id, k,i, param, twist_msg, cmd_vel_pub, distance_achieved, finished,back_to_base
+        global last_heartbeat, marker_ids, base_id, k,i, param, twist_msg, in_base
+        global cmd_vel_pub, distance_achieved, finished,back_to_base, tag_goal_finished
         
-        if robot_controller.back_to_base== True:
+        if in_base== True:
                 rospy.loginfo_once("back to base triggered")
 
                 if len(data.markers)==0 and i<len(base_id):
@@ -193,13 +204,11 @@ def callback(data):
                                         distance_achieved = False
                 elif k>=len(base_id):
                         rospy.set_param('ar_present', True)
-                        robot_controller.finished=True
-                        
-                        rospy.loginfo_once("Finished marker ids ")
-                        
+                        tag_goal_finished = True
+                        rospy.loginfo_once("Robot is in the goal tag, tag goal finished= true ")
 
-               
-               
+        return 0
+#adding rotation function
 def rotation():
         global last_heartbeat, param
         if param==0:
@@ -240,24 +249,113 @@ def rotation_base():
                 cmd_vel_pub.publish(twist_msg)
                 print("Rotating")
 
-def ar_demo():
-        global marker_ids, back_to_base, finished, base_id
-        # get target marker id
-        # marker_ids = rospy.get_param('~marker_ids').split(",")
+def movebase_client():
+    global finished, back_to_base,navigation_to_goal_finished,tag_goal_finished,base_id ,in_base
+    # Create a MoveBaseAction client
+    client = actionlib.SimpleActionClient('move_base', MoveBaseAction)
+    client.wait_for_server()
 
-        # base_id= rospy.get_param('~base_id')
+    # Create a goal
+    goal = MoveBaseGoal()
+    goal.target_pose.header.frame_id = "map"
+    goal.target_pose.header.stamp = rospy.Time.now()
 
-        # Create publisher for command velocity
-        global cmd_vel_pub
-        cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
+    # Set the position and orientation of the goal
+    #goal for xarm 
+    x_goal= 0.9831671714782715
+    y_goal= 2.663472890853882
+    z_goal=  0.9991141103266642
+    w_goal=0.042083186026706014
 
-        # Set up subscriber for /ar_pose_marker
-        rospy.loginfo("Subscribing to ar_pose_marker")
+    x_base=0.030399322509765625
+    y_base= -0.03087368980050087
+    z_base=-0.009441505537851355
+    w_base= 0.9999554279932574
 
-        rospy.Subscriber("ar_pose_marker", AlvarMarkers, callback)
-        rospy.loginfo("Succesfully subscribed to ar pose markers ")
-                          
+    if back_to_base: 
+        goal.target_pose.pose.position.x = x_base
+        goal.target_pose.pose.position.y = y_base
+        goal.target_pose.pose.orientation.z = z_base
+        goal.target_pose.pose.orientation.w = w_base
+    else:
+        goal.target_pose.pose.position.x = x_goal
+        goal.target_pose.pose.position.y = y_goal
+        goal.target_pose.pose.orientation.z = z_goal
+        goal.target_pose.pose.orientation.w = w_goal
 
-rospy.spin()
+    # Send the goal and wait for completion
+    client.send_goal(goal)
+    client.wait_for_result() #this is a blocking call, so the code will wait here until the robot reaches the goal
 
 
+    if back_to_base== False: #if we are going to goal 
+        navigation_to_goal_finished=True
+
+    #if going back to base, start nav_tags again
+    else:
+        rospy.loginfo("I am in base")
+        in_base=True
+
+    return client.get_result()
+
+#main function, that merges movebase and nav_tags
+def main():
+    global marker_ids, back_to_base, finished, base_id, cmd_vel_pub, navigation_to_goal_finished, tag_goal_finished, in_base
+
+
+    marker_ids = "5"
+
+    base_id= "0"
+
+    rospy.init_node('robot_controller')
+    cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
+
+
+
+    #wait for the user to start the moving process       
+    should_i_start= input("Do you want to start the sorting process? (y/n)")
+    if should_i_start=="y":
+        rospy.loginfo("launched and I have started movebase")
+        movebase_client()
+
+        if navigation_to_goal_finished==True:
+
+                # Set up subscriber for /ar_pose_marker
+                rospy.loginfo("Subscribing to ar_pose_marker")
+
+                rospy.Subscriber("ar_pose_marker", AlvarMarkers, callback)
+                rospy.loginfo("Succesfully subscribed to ar pose markers ")
+
+                if in_base==True:
+                        rospy.loginfo("I am in base, starting nav_tags")
+                        callback()               
+           
+    # Wait for the sorting server to become available
+    rospy.wait_for_service('sorting')
+
+    # Create a proxy for the sorting service
+    sorting_service = rospy.ServiceProxy('sorting', Trigger)
+
+    # Check if the robot is in position
+    while not rospy.is_shutdown():
+        if tag_goal_finished==True:
+
+            rospy.loginfo("Starting sorting process...")
+            # Send a request to start the sorting process
+            response = sorting_service(TriggerRequest())
+            if response.success:
+                    rospy.loginfo("Sorting process done.")
+                    back_to_base= True
+                    movebase_client()
+                    break
+    rospy.spin()
+
+
+
+
+if __name__ == '__main__':
+    try:
+        main()
+
+    except rospy.ROSInterruptException:
+        rospy.loginfo("Navigation test finished.")

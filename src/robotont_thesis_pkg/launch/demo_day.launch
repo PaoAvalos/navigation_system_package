@@ -27,12 +27,6 @@
     <param name="meter_scoring"  value="True"/>
 
   </include>
-
-
-    <!-- display and run lidar scan-->
-  <include file="$(find hls_lfcd_lds_driver)/launch/hlds_laser.launch">
-  </include>
-
   <!-- <node pkg="fkie_master_discovery" type="master_discovery" name="master_discovery" output="screen" />
   <node pkg="fkie_master_sync" type="master_sync" name="master_sync" output="screen" /> -->
 

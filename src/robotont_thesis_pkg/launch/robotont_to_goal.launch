@@ -14,8 +14,8 @@
   <arg name="mapping_method" default="gmapping"/>
   <param name="odom/child_frame" value="base_footprint"/>
 
-  <arg name="marker_ids" default="10" />
-  <arg name="base_id" default="0" />
+  <!-- <arg name="marker_ids" default="5,7" />
+  <arg name="base_id" default="0" /> -->
   <arg name="name_space" default="t1"/>
   
 <!-- Launching the amcl node with correct parameters -->
@@ -76,7 +76,7 @@
 <!-- Launching necessary nodes for the AR tags tracking  -->
 
   <node name="$(arg name_space)_ar_track_alvar" pkg="ar_track_alvar" type="individualMarkersNoKinect" respawn="false" output="screen">
-    <param name="marker_size"           type="double" value="6.8" />
+    <param name="marker_size"           type="double" value="14" />
     <param name="max_new_marker_error"  type="double" value="0.08" />
     <param name="max_track_error"       type="double" value="0.2" />
     <param name="output_frame"          type="string" value="$(arg prefix)camera_link" />
@@ -84,16 +84,12 @@
     <remap from="camera_info"   to="camera/color/camera_info" />
   </node> 
 
-<!-- Here is the robotont_client when using the ar_track_alvar node, BUT will make a single client node -->
-  <!-- <node name="$(arg name_space)robotont_client" pkg="robotont_thesis_pkg" type="robotont_client.py" output="screen">
-  </node>  -->
-
-
  <include file = "$(find robotont_laserscan_to_distance)/launch/distance_from_depth_image.launch"/>
-  <node name="nav_tags" pkg="robotont_thesis_pkg" type="nav_tags.py" output="screen">
-    <param name="marker_ids" type="string" value="$(arg marker_ids)" />
-    <param name="base_id" type="string" value="$(arg base_id)" />
+  <arg name="node_start_delay" default="2.0" />  
 
+  <node name="$(arg name_space)robot_controller" pkg="robotont_thesis_pkg" type="robot_controller.py" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " output="screen" >
+      <!-- <param name="marker_ids" type="string" value="$(arg marker_ids)" />
+      <param name="base_id" type="string" value="$(arg base_id)" /> -->
   </node>
-  
+  <!-- <node name="$(arg name_space)nav_tags" pkg="robotont_thesis_pkg" type="nav_tags.py" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " output="screen" /> -->
 </launch>
