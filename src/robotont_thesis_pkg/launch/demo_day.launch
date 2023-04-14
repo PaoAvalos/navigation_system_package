@@ -13,12 +13,7 @@
   <arg name="mapping_method" default="gmapping"/>
   <param name="odom/child_frame" value="base_footprint"/>
  
-
-
-<node pkg="tf" type="static_transform_publisher" name="base_link_to_lidar" args="0 0 0.1 0 0 0 1 base_link laser 100" />
-
-<node pkg="tf" type="static_transform_publisher" name="footprint_to_base" args="0 0 0 0 0 0 1 base_footprint base_link 100" />
-
+  <arg name="name_space" default="t1"/>
 
 
   <!-- navigation method-->
@@ -27,6 +22,7 @@
     <param name="meter_scoring"  value="True"/>
 
   </include>
+
   <!-- <node pkg="fkie_master_discovery" type="master_discovery" name="master_discovery" output="screen" />
   <node pkg="fkie_master_sync" type="master_sync" name="master_sync" output="screen" /> -->
 

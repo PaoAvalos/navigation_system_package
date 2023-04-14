@@ -318,17 +318,17 @@ def main():
         rospy.loginfo("launched and I have started movebase")
         movebase_client()
 
-        if navigation_to_goal_finished==True:
+        # if navigation_to_goal_finished==True:
 
-                # Set up subscriber for /ar_pose_marker
-                rospy.loginfo("Subscribing to ar_pose_marker")
+        #         # Set up subscriber for /ar_pose_marker
+        #         rospy.loginfo("Subscribing to ar_pose_marker")
 
-                rospy.Subscriber("ar_pose_marker", AlvarMarkers, callback)
-                rospy.loginfo("Succesfully subscribed to ar pose markers ")
+        #         rospy.Subscriber("ar_pose_marker", AlvarMarkers, callback)
+        #         rospy.loginfo("Succesfully subscribed to ar pose markers ")
 
-                if in_base==True:
-                        rospy.loginfo("I am in base, starting nav_tags")
-                        callback()               
+        #         if in_base==True:
+        #                 rospy.loginfo("I am in base, starting nav_tags")
+        #                 callback()               
            
     # Wait for the sorting server to become available
     rospy.wait_for_service('sorting')
@@ -338,7 +338,7 @@ def main():
 
     # Check if the robot is in position
     while not rospy.is_shutdown():
-        if tag_goal_finished==True:
+        if navigation_to_goal_finished==True:
 
             rospy.loginfo("Starting sorting process...")
             # Send a request to start the sorting process

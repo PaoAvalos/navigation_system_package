@@ -1,95 +1,32 @@
 <?xml version="1.0" ?>
 
 <launch>
-  <!--
-    '__ns' is needed as an explicit argument because it does not propagate as an argument to the included launch files.
-    as eval may not contain double underscore expressions, a new argument (eval_underscore_bypass) is defined to by-pass this issue.
-    when a namespace is specified, it is also converted into prefix with a trailing slash.
-  -->
-
-  <arg name="__ns" default=""/>
+  <arg name="__ns" default="robotont"/>
   <arg name="eval_underscore_bypass" value="$(arg __ns)"/>
   <arg if="$(eval eval_underscore_bypass == '')" name="prefix" default=''/> 
   <arg unless="$(eval eval_underscore_bypass == '')" name="prefix" default="$(arg __ns)/"/>
   <arg name="mapping_method" default="gmapping"/>
-  <param name="odom/child_frame" value="base_footprint"/>
-
-  <!-- <arg name="marker_ids" default="5,7" />
-  <arg name="base_id" default="0" /> -->
-  <arg name="name_space" default="t1"/>
+  <param name="odom/child_frame" value="/robotont/base_footprint"/>
   
+  <group ns="robotont">
+
 <!-- Launching the amcl node with correct parameters -->
-
-<node pkg="amcl" type="amcl" name="amcl">
-
- <param name="odom_model_type" value="diff"/>
-  <param name="odom_alpha5" value="0.1"/>
-  <param name="gui_publish_rate" value="10.0"/>
-  <param name="laser_max_beams" value="60"/>
-  <param name="min_particles" value="500"/>
-  <param name="max_particles" value="2000"/>
-  <param name="kld_err" value="0.05"/>
-  <param name="kld_z" value="0.99"/>
-  <param name="odom_alpha1" value="0.2"/>
-  <param name="odom_alpha2" value="0.2"/>
-  <!-- translation std dev, m -->
-  <param name="odom_alpha3" value="0.2"/>
-  <param name="odom_alpha4" value="0.2"/>
-  <param name="laser_z_hit" value="0.5"/>
-  <param name="laser_z_short" value="0.05"/>
-  <param name="laser_z_max" value="0.05"/>
-  <param name="laser_z_rand" value="0.5"/>
-  <param name="laser_sigma_hit" value="0.2"/>
-  <param name="laser_lambda_short" value="0.1"/>
-  <param name="laser_model_type" value="likelihood_field"/>
-  <!-- <param name="laser_model_type" value="beam"/> -->
-  <param name="laser_likelihood_max_dist" value="2.0"/>
-  <param name="update_min_d" value="0.25"/>
-  <param name="update_min_a" value="0.2"/>
-  <param name="odom_frame_id" value="odom"/>
-  <param name="resample_interval" value="1"/>
-  <param name="transform_tolerance" value="1"/>
-  <param name="recovery_alpha_slow" value="0.0"/>
-  <param name="recovery_alpha_fast" value="0.0"/>
-</node>
-
-<!-- Launching the demo -->
-
-<node pkg="tf" type="static_transform_publisher" name="base_link_to_lidar" args="0 0 0.1 0 0 0 1 base_link laser 100" />
-
-<node pkg="tf" type="static_transform_publisher" name="footprint_to_base" args="0 0 0 0 0 0 1 base_footprint base_link 100" />
-
-  <!-- navigation method-->
-  <include file="$(find robotont_demos)/launch/2d_slam_navigation.launch">
-    <arg name="__ns" value="$(arg __ns)"/>
-    <param name="meter_scoring"  value="True"/>
+  <include file="$(find robotont_thesis_pkg)/launch/amcl.launch">
   </include>
 
- 
+  <include file="$(find robotont_demos)/launch/2d_slam_navigation.launch">
+    <arg name="__ns" value="$(arg __ns)"/>
+  </include>
+  
+<!-- Launching the transforms-->
+  <include file="$(find robotont_thesis_pkg)/launch/transforms.launch">
+  </include>
+<!-- for using ar track with camera  -->
+ <!-- <include file = "$(find robotont_laserscan_to_distance)/launch/distance_from_depth_image.launch"/> -->
 
-
-<!-- Uncomment to use the master discovery and sync nodes -->
-  <!-- <node pkg="fkie_master_discovery" type="master_discovery" name="master_discovery" output="screen" />
-  <node pkg="fkie_master_sync" type="master_sync" name="master_sync" output="screen" /> -->
-
-
-<!-- Launching necessary nodes for the AR tags tracking  -->
-
-  <node name="$(arg name_space)_ar_track_alvar" pkg="ar_track_alvar" type="individualMarkersNoKinect" respawn="false" output="screen">
-    <param name="marker_size"           type="double" value="14" />
-    <param name="max_new_marker_error"  type="double" value="0.08" />
-    <param name="max_track_error"       type="double" value="0.2" />
-    <param name="output_frame"          type="string" value="$(arg prefix)camera_link" />
-    <remap from="camera_image"  to="camera/color/image_raw" />
-    <remap from="camera_info"   to="camera/color/camera_info" />
+  <arg name="map_file" value="$(find robotont_thesis_pkg)/maps/delta_room_lidar7.yaml"/>
+  <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)"> 
   </node> 
 
- <include file = "$(find robotont_laserscan_to_distance)/launch/distance_from_depth_image.launch"/>
-  <arg name="node_start_delay" default="2.0" />  
-
-  <node name="$(arg name_space)robot_controller" pkg="robotont_thesis_pkg" type="robot_controller.py" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " output="screen" >
-      <!-- <param name="marker_ids" type="string" value="$(arg marker_ids)" />
-      <param name="base_id" type="string" value="$(arg base_id)" /> -->
-  </node>
-  <!-- <node name="$(arg name_space)nav_tags" pkg="robotont_thesis_pkg" type="nav_tags.py" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " output="screen" /> -->
+</group>
 </launch>

@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+
+<launch>
+  <!--
+    '__ns' is needed as an explicit argument because it does not propagate as an argument to the included launch files.
+    as eval may not contain double underscore expressions, a new argument (eval_underscore_bypass) is defined to by-pass this issue.
+    when a namespace is specified, it is also converted into prefix with a trailing slash.
+  -->
+  <arg name="__ns" default=""/>
+  <arg name="eval_underscore_bypass" value="$(arg __ns)"/>
+  <arg if="$(eval eval_underscore_bypass == '')" name="prefix" default=''/> 
+  <arg unless="$(eval eval_underscore_bypass == '')" name="prefix" default="$(arg __ns)/"/>
+  <arg name="mapping_method" default="gmapping"/>
+  <param name="odom/child_frame" value="base_footprint"/>
+ 
+
+
+<!-- <node pkg="tf" type="static_transform_publisher" name="laser_to_map" args="0 0 0 0 0 0 1 laser map 100" />
+
+<node pkg="tf" type="static_transform_publisher" name="footprint_to_base" args="0 0 0 0 0 0 1 base_footprint base_link 100" />
+ -->
+
+
+  <!-- navigation method-->
+  <include file="$(find robotont_demos)/launch/2d_slam_navigation.launch">
+    <arg name="__ns" value="$(arg __ns)"/>
+    <param name="meter_scoring"  value="True"/>
+
+  </include>
+
+  <include file="$(find robotont_description)/launch/upload_description.launch">
+    <arg name="__ns" value="$(arg __ns)"/>
+  </include>
+
+  <include file="$(find robotont_thesis_pkg)/launch/amcl.launch"/>
+
+  <!-- <node pkg="fkie_master_discovery" type="master_discovery" name="master_discovery" output="screen" />
+  <node pkg="fkie_master_sync" type="master_sync" name="master_sync" output="screen" /> -->
+
+</launch>

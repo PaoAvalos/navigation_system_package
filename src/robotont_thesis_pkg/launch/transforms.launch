@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+
+<launch>
+
+<!-- static transforms for laser (lidar)-->
+
+<!-- <node pkg="tf" type="static_transform_publisher" name="base_link_to_lidar" args="0 0 0.1 0 0 0 1 robotont/base_link laser 100" />
+<node pkg="tf" type="static_transform_publisher" name="footprint_to_base" args="0 0 0 0 0 0 1 robotont/base_footprint robotont/base_link 100" /> -->
+<!-- <node pkg="tf" type="static_transform_publisher" name="rim_link_to_base" args="0 0 0.1 0 0 0 1 laser base_link 100" /> -->
+
+</launch>

@@ -1,0 +1,15 @@
+<?xml version="1.0" ?>
+
+<launch>
+
+  <arg name="__ns" default="robotont"/>
+  <arg name="eval_underscore_bypass" value="$(arg __ns)"/>
+  <arg if="$(eval eval_underscore_bypass == '')" name="prefix" default=''/> 
+  <arg unless="$(eval eval_underscore_bypass == '')" name="prefix" default="$(arg __ns)/"/>  
+  <group ns="robotont">
+    <arg name="map_file" value="$(find robotont_thesis_pkg)/maps/delta_room_lidar7.yaml"/>
+    <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)"> 
+    </node> 
+
+ </group>
+</launch>
