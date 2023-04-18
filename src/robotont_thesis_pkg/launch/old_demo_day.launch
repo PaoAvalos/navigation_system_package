@@ -15,10 +15,9 @@
  
 
 
-<!-- <node pkg="tf" type="static_transform_publisher" name="laser_to_map" args="0 0 0 0 0 0 1 laser map 100" />
+<node pkg="tf" type="static_transform_publisher" name="laser_to_map" args="0 0 0 0 0 0 1 laser map 100" />
 
-<node pkg="tf" type="static_transform_publisher" name="footprint_to_base" args="0 0 0 0 0 0 1 base_footprint base_link 100" />
- -->
+
 
 
   <!-- navigation method-->

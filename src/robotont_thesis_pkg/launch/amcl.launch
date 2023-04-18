@@ -7,7 +7,10 @@
     when a namespace is specified, it is also converted into prefix with a trailing slash.
   -->
   
-
+  <arg name="__ns" default=""/>
+  <arg name="eval_underscore_bypass" value="$(arg __ns)"/>
+  <arg if="$(eval eval_underscore_bypass == '')" name="prefix" default=''/> 
+  <arg unless="$(eval eval_underscore_bypass == '')" name="prefix" default="$(arg __ns)/"/>
 
 <node pkg="amcl" type="amcl" name="amcl">
   <!-- Publish scans from best pose at a max of 10 Hz -->
@@ -72,7 +75,10 @@
   <param name="laser_likelihood_max_dist" value="2.0"/>
   <param name="update_min_d" value="0.25"/>
   <param name="update_min_a" value="0.2"/>
-  <param name="odom_frame_id" value="odom"/>
+  <param name="odom_frame_id" value="$(arg prefix)odom"/>
+  <param name="base_frame_id" value="$(arg prefix)base_footprint"/>
+  <param name="global_frame_id" value="$(arg prefix)map"/>
+
   <param name="resample_interval" value="1"/>
   <param name="transform_tolerance" value="1"/>
   <param name="recovery_alpha_slow" value="0.0"/>

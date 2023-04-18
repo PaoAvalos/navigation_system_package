@@ -1,11 +1,12 @@
 <?xml version="1.0" ?>
 
 <launch>
-
+  <arg name="__ns" default=""/>
+  <arg name="eval_underscore_bypass" value="$(arg __ns)"/>
+  <arg if="$(eval eval_underscore_bypass == '')" name="prefix" default=''/> 
+  <arg unless="$(eval eval_underscore_bypass == '')" name="prefix" default="$(arg __ns)/"/>
 <!-- static transforms for laser (lidar)-->
-
-<!-- <node pkg="tf" type="static_transform_publisher" name="base_link_to_lidar" args="0 0 0.1 0 0 0 1 robotont/base_link laser 100" />
-<node pkg="tf" type="static_transform_publisher" name="footprint_to_base" args="0 0 0 0 0 0 1 robotont/base_footprint robotont/base_link 100" /> -->
-<!-- <node pkg="tf" type="static_transform_publisher" name="rim_link_to_base" args="0 0 0.1 0 0 0 1 laser base_link 100" /> -->
+<node pkg="tf" type="static_transform_publisher" name="base_footprint_to_lidar" args="0 0 0.1 0 0 0 1 $(arg prefix)base_footprint $(arg prefix)laser 100" />
+<!-- <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0.001 0 0 0 1 robotont/map robotont/odom 100" /> -->
 
 </launch>

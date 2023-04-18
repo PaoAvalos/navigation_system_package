@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <arg name="__ns" default=""/>
+  <arg name="eval_underscore_bypass" value="$(arg __ns)"/>
+  <arg if="$(eval eval_underscore_bypass == '')" name="prefix" default=''/> 
+  <arg unless="$(eval eval_underscore_bypass == '')" name="prefix" default="$(arg __ns)/"/>
+  
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robotont_thesis_pkg)/config/monitoring.rviz" output="screen">
+        <remap from="initialpose"  to="$(arg prefix)initialpose" />
+        <remap from="/move_base_simple/goal"   to="$(arg prefix)move_base_simple/goal" />
+    </node>
+</launch>
