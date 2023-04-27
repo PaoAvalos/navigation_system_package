@@ -7,7 +7,7 @@
   <arg unless="$(eval eval_underscore_bypass == '')" name="prefix" default="$(arg __ns)/"/>
   
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find robotont_thesis_pkg)/config/monitoring.rviz" output="screen">
-        <remap from="initialpose"  to="$(arg prefix)initialpose" />
-        <remap from="/move_base_simple/goal"   to="$(arg prefix)move_base_simple/goal" />
+        <remap from="/initialpose"  to="initialpose" />
+        <remap from="/move_base_simple/goal"   to="move_base_simple/goal" />
     </node>
 </launch>

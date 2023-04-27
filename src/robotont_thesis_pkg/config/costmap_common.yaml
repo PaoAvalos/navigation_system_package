@@ -13,12 +13,12 @@ raytrace_range: 6.0
 
 #layer definitions
 static:
-    map_topic: $(arg prefix)map
+    map_topic: map  #is this local or global? 
     subscribe_to_updates: true
 
 obstacles_laser:
     observation_sources: $(arg prefix)laser
-    laser: {data_type: LaserScan, clearing: true, marking: true, topic: scan, inf_is_valid: true}
+    laser: {data_type: LaserScan, clearing: true, marking: true, topic: $(arg prefix)scan, inf_is_valid: true}
 
 inflation:
     inflation_radius: 0.1
