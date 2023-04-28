@@ -12,6 +12,7 @@
   <arg if="$(eval eval_underscore_bypass == '')" name="prefix" default=''/> 
   <arg unless="$(eval eval_underscore_bypass == '')" name="prefix" default="$(arg __ns)/"/>
 
+
 <node pkg="amcl" type="amcl" name="amcl">
   <!-- Publish scans from best pose at a max of 10 Hz -->
  <!-- <param name="min_particles"             value="500"/>
@@ -82,7 +83,6 @@
   <param name="odom_frame_id"   value="$(arg prefix)odom"/>
   <param name="base_frame_id"   value="$(arg prefix)base_footprint"/>
   <param name="global_frame_id" value="map"/>
-  <param name="scan_topic" value="$(arg prefix)scan"/>
 
   <!-- Remap topics to account for a namespace that AMCL has been -->
   <!-- pushed down into. -->

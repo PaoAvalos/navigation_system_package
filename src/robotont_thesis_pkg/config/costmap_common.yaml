@@ -17,8 +17,8 @@ static:
     subscribe_to_updates: true
 
 obstacles_laser:
-    observation_sources: $(arg prefix)laser
-    laser: {data_type: LaserScan, clearing: true, marking: true, topic: $(arg prefix)scan, inf_is_valid: true}
+    observation_sources: laser
+    laser: {data_type: LaserScan, clearing: true, marking: true, topic: scan, inf_is_valid: true}
 
 inflation:
     inflation_radius: 0.1
