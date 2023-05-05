@@ -12,7 +12,7 @@
   <arg if="$(eval eval_underscore_bypass == '')" name="prefix" default=''/> 
   <arg unless="$(eval eval_underscore_bypass == '')" name="prefix" default="$(arg __ns)/"/>
 
-
+  
 <node pkg="amcl" type="amcl" name="amcl">
   <!-- Publish scans from best pose at a max of 10 Hz -->
  <!-- <param name="min_particles"             value="500"/>
@@ -84,6 +84,10 @@
   <param name="base_frame_id"   value="$(arg prefix)base_footprint"/>
   <param name="global_frame_id" value="map"/>
 
+  <!-- <remap from="map" to="/map"/>
+  <param name="tf_broadcast" value="true"/>
+  <param name="use_map_topic"             value="false"/> -->
+  <!-- <param name="tf_prefix"	value="$(arg prefix)"/> -->
   <!-- Remap topics to account for a namespace that AMCL has been -->
   <!-- pushed down into. -->
   

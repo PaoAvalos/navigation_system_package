@@ -7,6 +7,7 @@
   <arg unless="$(eval eval_underscore_bypass == '')" name="prefix" default="$(arg __ns)/"/>
 <!-- static transforms for laser (lidar)-->
 <node pkg="tf" type="static_transform_publisher" name="base_footprint_to_lidar" args="0 0 0.1 0 0 0 1 $(arg prefix)base_footprint $(arg prefix)laser 100" />
+<node pkg="tf" type="static_transform_publisher" name="map_tf" args="0 0 0 0 0 0 1 $(arg prefix)map map 100" />
 
 <!-- <node pkg="tf" type="static_transform_publisher" name="scan_to_map" args="0 0 0 0 0 0 $(arg prefix)map $(arg prefix)scan 100"/>  -->
 </launch>
