@@ -6,33 +6,31 @@
   <arg if="$(eval eval_underscore_bypass == '')" name="prefix" default=''/> 
   <arg unless="$(eval eval_underscore_bypass == '')" name="prefix" default="$(arg __ns)/"/>
   <arg name="mapping_method" default="gmapping"/>
-  <arg name="lidar" default="false" />
 
-  <launch>
-    <rosparam file="$(find robotont_thesis_pkg)/config/xarm_goals.yaml" />
-  </launch>
+  <arg name="lidar" default="true"/>
 
-<!-- Launching the amcl node with correct parameters -->
-  <include file="$(find robotont_thesis_pkg)/launch/amcl.launch">
+ <!-- <include file="$(find robotont_thesis_pkg)/launch/amcl.launch">
       <arg name="__ns" value="$(arg __ns)"/>
   </include>
 
   <include file="$(find robotont_navigation)/launch/move_base.launch">
     <arg name="__ns" value="$(arg __ns)"/>
   </include>
-  
+   
   <include file="$(find robotont_thesis_pkg)/launch/transforms.launch">
         <arg name="__ns" value="$(arg __ns)"/>
-  </include> 
+  </include>   -->
 
-<!-- for using ar track with camera  -->
   <group if="$(arg lidar)">
-    <include file = "$(find robotont_thesis_pkg)/launch/distance_from_depth_image_with_lidar.launch"/>
+    <include file = "$(find robotont_thesis_pkg)/launch/distance_from_depth_image_with_lidar.launch">
+      <arg name="__ns" value="$(arg __ns)"/>
+    </include>
   </group>
 
-  <group unless="$(arg lidar)">
-    <include file = "$(find robotont_thesis_pkg)/launch/distance_from_depth_image_no_lidar.launch"/>
-  </group>
-
+  <!-- <group unless="$(arg lidar)">
+    <include file = "$(find robotont_thesis_pkg)/launch/distance_from_depth_image_without_lidar.launch">
+            <arg name="__ns" value="$(arg __ns)"/>
+    </include>
+  </group>  -->
 
 </launch>

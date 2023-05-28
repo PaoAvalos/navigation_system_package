@@ -30,10 +30,11 @@ def movebase_client():
 
     # Set the position and orientation of the goal
     # goal for xarm 
-    x_goal = 0.9831671714782715
-    y_goal = 2.663472890853882
-    z_goal = 0.9991141103266642
-    w_goal = 0.042083186026706014
+    x_goal= -1.9241305589675903
+    y_goal= -0.04057121276855469
+    z_goal=  -0.9999746531240553
+    w_goal=0.007119909369179759
+
 
     goal.target_pose.pose.position.x = x_goal
     goal.target_pose.pose.position.y = y_goal

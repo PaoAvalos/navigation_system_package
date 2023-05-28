@@ -45,169 +45,85 @@ def callback(data):
         global last_heartbeat, marker_ids, base_id, k,i, param, twist_msg, in_base
         global cmd_vel_pub, distance_achieved, finished,back_to_base, tag_goal_finished
         
-        if in_base== True:
-                rospy.loginfo_once("back to base triggered")
+        if len(data.markers)==0 and k<len(marker_ids):
+                rospy.loginfo_once("No marker detected")
+                rotation()
 
-                if len(data.markers)==0 and i<len(base_id):
-                        rotation()
+        elif len(data.markers)!=0 and k<len(marker_ids):
+                print("MARKER DETECTED")
+                for marker in data.markers:
+                        # Check the marker id
+                        if marker.id != int(marker_ids[k]):
 
-                elif len(data.markers)!=0 and i<len(base_id):
-                        print("MARKER DETECTED")
-                        for marker in data.markers:
-                                # Check the marker id
-                                if marker.id != int(base_id[i]):
-
-                                        rotation_base()
-                                        continue
-                        
-                                rospy.set_param('ar_present', True)
-                                param = 0
-                                rospy.loginfo(rospy.get_caller_id() + " I heard %s", marker)
-                                marker_pos = (
-                                        marker.pose.pose.position.x,
-                                        marker.pose.pose.position.y,
-                                        marker.pose.pose.position.z,
-                                        0)
-                                marker_ori = (
-                                        marker.pose.pose.orientation.x,
-                                        marker.pose.pose.orientation.y,
-                                        marker.pose.pose.orientation.z,
-                                        marker.pose.pose.orientation.w)
-
-                                # Start with a unit vector pointing forward
-                                goal_dir = numpy.array([0, 0, 1, 0])
-
-                                # Rotation matrix that represents to marker orientation
-                                rot_mat = tf.transformations.quaternion_matrix(marker_ori)
-
-                                # Rotate the unit vec so it points to the direction of the marker
-                                goal_dir = rot_mat.dot(goal_dir)
-                                #
-                                print("Goal direction: ", goal_dir)
-                                goal_pos = marker_pos + goal_dir * GOAL_DIST_FROM_MARKER
-                                # Find planar distance to the goal
-                                dist_to_goal = numpy.linalg.norm(goal_pos[0:2])
-                                dist_to_goal_x = numpy.linalg.norm(goal_pos[0])
-                                dist_to_marker = numpy.linalg.norm(marker_pos[0:2])
-                                #twist_msg = Twist()
-                                angle = atan2(marker_pos[1],marker_pos[0])
-                                rospy.logdebug("ANGLE: %s", angle)
-                                rospy.logdebug("DISTTOMARKER: %s", dist_to_marker)
-                                rospy.logdebug("GoalDir: %s", goal_dir)
-                                rospy.logdebug("DISTTOGOAL: %s", dist_to_goal)
-                                rospy.logdebug("DISTTOGOALX: %s", dist_to_goal_x)
-                                rospy.logdebug("\nPOS: %s", marker_pos)
-                                rospy.logdebug("\nGOAL: %s", goal_pos)
-
-                                if dist_to_goal_x > GOAL_TOLERANCE and not distance_achieved:
-                                        print("Calibrating distance")
-                                        print(dist_to_goal_x)
-                                        twist_msg.linear.x = min(max(goal_pos[0],-MAX_LIN_VEL),MAX_LIN_VEL)
-                                        twist_msg.linear.y = 0
-                                        twist_msg.angular.z = 4*min(max(angle,-MAX_ANG_VEL),MAX_ANG_VEL)
-                                        print("Updating cmd vel %s", twist_msg)
-                                        cmd_vel_pub.publish(twist_msg)
-                                        if dist_to_goal_x <= GOAL_TOLERANCE:
-                                                distance_achieved = True
-                                                break
-                                        
-                                elif abs(angle) > ANGLE_TOLERANCE or dist_to_goal > GOAL_TOLERANCE:
-                                        print("Calibrating angle")
-                                        twist_msg.linear.x = min(max(goal_pos[0],-MAX_LIN_VEL),MAX_LIN_VEL)
-                                        twist_msg.linear.y = min(max(goal_pos[1],-MAX_LIN_VEL),MAX_LIN_VEL)
-                                        twist_msg.angular.z = 4*min(max(angle,-MAX_ANG_VEL),MAX_ANG_VEL)
-                                        print("Updating cmd vel %s", twist_msg)
-                                        cmd_vel_pub.publish(twist_msg)
-                                else:
-                                        i=i+1
-                                        distance_achieved = False
+                                rotation()
+                                continue
                 
-                                rospy.loginfo_once("Robot is back to base")
-                                
-                                break
-
-        # if going to goal and not base 
-        else:
-
-                if len(data.markers)==0 and k<len(marker_ids):
-                        rospy.loginfo_once("No marker detected")
-                        rotation()
-
-                elif len(data.markers)!=0 and k<len(marker_ids):
-                        print("MARKER DETECTED")
-                        for marker in data.markers:
-                                # Check the marker id
-                                if marker.id != int(marker_ids[k]):
-
-                                        rotation()
-                                        continue
-                        
-                                rospy.set_param('ar_present', True)
-                                param = 0
-                                rospy.loginfo(rospy.get_caller_id() + " I heard %s", marker)
-                                marker_pos = (
-                                        marker.pose.pose.position.x,
-                                        marker.pose.pose.position.y,
-                                        marker.pose.pose.position.z,
-                                        0)
-                                marker_ori = (
-                                        marker.pose.pose.orientation.x,
-                                        marker.pose.pose.orientation.y,
-                                        marker.pose.pose.orientation.z,
-                                        marker.pose.pose.orientation.w)
-
-                                # Start with a unit vector pointing forward
-                                goal_dir = numpy.array([0, 0, 1, 0])
-
-                                # Rotation matrix that represents to marker orientation
-                                rot_mat = tf.transformations.quaternion_matrix(marker_ori)
-
-                                # Rotate the unit vec so it points to the direction of the marker
-                                goal_dir = rot_mat.dot(goal_dir)
-                                #
-                                print("Goal direction: ", goal_dir)
-                                goal_pos = marker_pos + goal_dir * GOAL_DIST_FROM_MARKER
-                                # Find planar distance to the goal
-                                dist_to_goal = numpy.linalg.norm(goal_pos[0:2])
-                                dist_to_goal_x = numpy.linalg.norm(goal_pos[0])
-                                dist_to_marker = numpy.linalg.norm(marker_pos[0:2])
-                                #twist_msg = Twist()
-                                angle = atan2(marker_pos[1],marker_pos[0])
-                                rospy.logdebug("ANGLE: %s", angle)
-                                rospy.logdebug("DISTTOMARKER: %s", dist_to_marker)
-                                rospy.logdebug("GoalDir: %s", goal_dir)
-                                rospy.logdebug("DISTTOGOAL: %s", dist_to_goal)
-                                rospy.logdebug("DISTTOGOALX: %s", dist_to_goal_x)
-                                rospy.logdebug("\nPOS: %s", marker_pos)
-                                rospy.logdebug("\nGOAL: %s", goal_pos)
-
-                                if dist_to_goal_x > GOAL_TOLERANCE and not distance_achieved:
-                                        print("Calibrating distance")
-                                        print(dist_to_goal_x)
-                                        twist_msg.linear.x = min(max(goal_pos[0],-MAX_LIN_VEL),MAX_LIN_VEL)
-                                        twist_msg.linear.y = 0
-                                        twist_msg.angular.z = 4*min(max(angle,-MAX_ANG_VEL),MAX_ANG_VEL)
-                                        print("Updating cmd vel %s", twist_msg)
-                                        cmd_vel_pub.publish(twist_msg)
-                                        if dist_to_goal_x <= GOAL_TOLERANCE:
-                                                distance_achieved = True
-                                        
-                                elif abs(angle) > ANGLE_TOLERANCE or dist_to_goal > GOAL_TOLERANCE:
-                                        print("Calibrating angle")
-                                        twist_msg.linear.x = min(max(goal_pos[0],-MAX_LIN_VEL),MAX_LIN_VEL)
-                                        twist_msg.linear.y = min(max(goal_pos[1],-MAX_LIN_VEL),MAX_LIN_VEL)
-                                        twist_msg.angular.z = 4*min(max(angle,-MAX_ANG_VEL),MAX_ANG_VEL)
-                                        print("Updating cmd vel %s", twist_msg)
-                                        cmd_vel_pub.publish(twist_msg)
-                                else:
-                                        k=k+1
-                                        distance_achieved = False
-                elif k>=len(base_id):
                         rospy.set_param('ar_present', True)
-                        tag_goal_finished = True
-                        rospy.loginfo_once("Robot is in the goal tag, tag goal finished= true ")
+                        param = 0
+                        rospy.loginfo(rospy.get_caller_id() + " I heard %s", marker)
+                        marker_pos = (
+                                marker.pose.pose.position.x,
+                                marker.pose.pose.position.y,
+                                marker.pose.pose.position.z,
+                                0)
+                        marker_ori = (
+                                marker.pose.pose.orientation.x,
+                                marker.pose.pose.orientation.y,
+                                marker.pose.pose.orientation.z,
+                                marker.pose.pose.orientation.w)
 
-        return 0
+                        # Start with a unit vector pointing forward
+                        goal_dir = numpy.array([0, 0, 1, 0])
+
+                        # Rotation matrix that represents to marker orientation
+                        rot_mat = tf.transformations.quaternion_matrix(marker_ori)
+
+                        # Rotate the unit vec so it points to the direction of the marker
+                        goal_dir = rot_mat.dot(goal_dir)
+                        #
+                        print("Goal direction: ", goal_dir)
+                        goal_pos = marker_pos + goal_dir * GOAL_DIST_FROM_MARKER
+                        # Find planar distance to the goal
+                        dist_to_goal = numpy.linalg.norm(goal_pos[0:2])
+                        dist_to_goal_x = numpy.linalg.norm(goal_pos[0])
+                        dist_to_marker = numpy.linalg.norm(marker_pos[0:2])
+                        #twist_msg = Twist()
+                        angle = atan2(marker_pos[1],marker_pos[0])
+                        rospy.logdebug("ANGLE: %s", angle)
+                        rospy.logdebug("DISTTOMARKER: %s", dist_to_marker)
+                        rospy.logdebug("GoalDir: %s", goal_dir)
+                        rospy.logdebug("DISTTOGOAL: %s", dist_to_goal)
+                        rospy.logdebug("DISTTOGOALX: %s", dist_to_goal_x)
+                        rospy.logdebug("\nPOS: %s", marker_pos)
+                        rospy.logdebug("\nGOAL: %s", goal_pos)
+
+                        if dist_to_goal_x > GOAL_TOLERANCE and not distance_achieved:
+                                print("Calibrating distance")
+                                print(dist_to_goal_x)
+                                twist_msg.linear.x = min(max(goal_pos[0],-MAX_LIN_VEL),MAX_LIN_VEL)
+                                twist_msg.linear.y = 0
+                                twist_msg.angular.z = 4*min(max(angle,-MAX_ANG_VEL),MAX_ANG_VEL)
+                                print("Updating cmd vel %s", twist_msg)
+                                cmd_vel_pub.publish(twist_msg)
+                                if dist_to_goal_x <= GOAL_TOLERANCE:
+                                        distance_achieved = True
+                                
+                        elif abs(angle) > ANGLE_TOLERANCE or dist_to_goal > GOAL_TOLERANCE:
+                                print("Calibrating angle")
+                                twist_msg.linear.x = min(max(goal_pos[0],-MAX_LIN_VEL),MAX_LIN_VEL)
+                                twist_msg.linear.y = min(max(goal_pos[1],-MAX_LIN_VEL),MAX_LIN_VEL)
+                                twist_msg.angular.z = 4*min(max(angle,-MAX_ANG_VEL),MAX_ANG_VEL)
+                                print("Updating cmd vel %s", twist_msg)
+                                cmd_vel_pub.publish(twist_msg)
+                        else:
+                                k=k+1
+                                distance_achieved = False
+        elif k>=len(marker_ids):
+                rospy.set_param('ar_present', True)
+                tag_goal_finished = True
+                rospy.loginfo_once("Robot is in the goal tag, tag goal finished= true ")
+        
+
 #adding rotation function
 def rotation():
         global last_heartbeat, param
@@ -258,19 +174,18 @@ def movebase_client():
     # Create a goal
     goal = MoveBaseGoal()
     goal.target_pose.header.frame_id = "map"
-    goal.target_pose.header.stamp = rospy.Time.now()
 
     # Set the position and orientation of the goal
     #goal for xarm 
-    x_goal= 0.9831671714782715
-    y_goal= 2.663472890853882
-    z_goal=  0.9991141103266642
-    w_goal=0.042083186026706014
+    x_goal=  1.4334101676940918
+    y_goal= -8.417564392089844
+    z_goal= -0.935357373645112
+    w_goal= 0.35370409040286555
 
-    x_base=0.030399322509765625
-    y_base= -0.03087368980050087
-    z_base=-0.009441505537851355
-    w_base= 0.9999554279932574
+    x_base=-0.09474891424179077
+    y_base=  0.10085391998291016
+    z_base=-0.00929586053010463
+    w_base= 0.9999567925550608
 
     if back_to_base: 
         goal.target_pose.pose.position.x = x_base
@@ -303,32 +218,21 @@ def main():
     global marker_ids, back_to_base, finished, base_id, cmd_vel_pub, navigation_to_goal_finished, tag_goal_finished, in_base
 
 
-    marker_ids = "5"
+    marker_ids = "17"
 
     base_id= "0"
 
     rospy.init_node('robot_controller')
     cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
+    movebase_client()
 
+    if navigation_to_goal_finished==True:
 
+        # Set up subscriber for /ar_pose_marker
+        rospy.loginfo("Subscribing to ar_pose_marker")
 
-    #wait for the user to start the moving process       
-    should_i_start= input("Do you want to start the sorting process? (y/n)")
-    if should_i_start=="y":
-        rospy.loginfo("launched and I have started movebase")
-        movebase_client()
-
-        # if navigation_to_goal_finished==True:
-
-        #         # Set up subscriber for /ar_pose_marker
-        #         rospy.loginfo("Subscribing to ar_pose_marker")
-
-        #         rospy.Subscriber("ar_pose_marker", AlvarMarkers, callback)
-        #         rospy.loginfo("Succesfully subscribed to ar pose markers ")
-
-        #         if in_base==True:
-        #                 rospy.loginfo("I am in base, starting nav_tags")
-        #                 callback()               
+        rospy.Subscriber("ar_pose_marker", AlvarMarkers, callback)
+        rospy.loginfo("Succesfully subscribed to ar pose markers ")       
            
     # Wait for the sorting server to become available
     rospy.wait_for_service('sorting')
@@ -338,7 +242,7 @@ def main():
 
     # Check if the robot is in position
     while not rospy.is_shutdown():
-        if navigation_to_goal_finished==True:
+        if tag_goal_finished == True:
 
             rospy.loginfo("Starting sorting process...")
             # Send a request to start the sorting process
@@ -346,6 +250,12 @@ def main():
             if response.success:
                     rospy.loginfo("Sorting process done.")
                     back_to_base= True
+                    twist_msg.linear.x = 0.0
+                    twist_msg.linear.y = 0.0
+                    twist_msg.angular.z =0.5
+                    cmd_vel_pub.publish(twist_msg)
+                    print("Rotating")
+                    
                     movebase_client()
                     break
     rospy.spin()
