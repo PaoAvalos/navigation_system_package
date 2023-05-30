@@ -6,6 +6,9 @@ import numpy
 from geometry_msgs.msg import Twist
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from math import atan2, sqrt
+from std_msgs.msg import String
+from std_srvs.srv import SetBool, SetBoolResponse
+from robotont_thesis_pkg.srv import Navigation, NavigationResponse
 
 MAX_LIN_VEL = 0.05
 MAX_ANG_VEL = 0.6
@@ -19,7 +22,6 @@ last_heartbeat = 0
 k=0
 param = 0
 twist_msg = Twist()
-finish = False
 distance_achieved = False
 
 DETECTING_SPEED_ROTATION = 0.5
@@ -27,6 +29,7 @@ side_rotation = [1, -1]
 calc_time_dur = 0
 moving = True
 rotation = False
+marker_ids = []
 rospy.set_param('ar_present', True)
 
 def callback(data):
@@ -100,8 +103,10 @@ def callback(data):
         elif k>=len(marker_ids):
             rospy.set_param('ar_present', True)
             finish = True
+
 def rotation():
-        global last_heartbeat, param
+        global last_heartbeat, param, marker_ids, twist_msg, cmd_vel_pub
+
         if param==0:
                 param = 1
                 last_heartbeat = rospy.get_time()
@@ -120,16 +125,41 @@ def rotation():
                 cmd_vel_pub.publish(twist_msg)
                 print("Rotating")
 
+
+def define_mode(req):
+    global marker_ids , finish
+    print (req.mode)
+    if req.mode == "AR_Adjust":
+        marker_ids = [17]
+    elif req.mode == "AR_Recovery":
+        marker_ids = rospy.get_param('~marker_ids').split(",")
+
+
+    # Wait for the process to complete
+    while not finish:
+        rospy.sleep(0.1)  # Adjust the sleep duration as needed
+    
+    # Reset the completion status for future requests
+    finish = False
+
+    # Return the appropriate response
+    response = NavigationResponse()
+    response.success = True
+    
+    return response
+           
 def ar_demo():
         global marker_ids
         # Initialize this ROS node
         rospy.init_node('nav_tags', anonymous=True)
-        # get target marker id
-        marker_ids = rospy.get_param('~marker_ids').split(",")
-
         # Create publisher for command velocity
         global cmd_vel_pub
         cmd_vel_pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
+
+        rospy.Service('navigation', Navigation, define_mode)
+        #wait until a request is received to being the rest 
+        rospy.wait_for_service('navigation')
+        
 
         # Set up subscriber for /ar_pose_marker
         rospy.loginfo("Subscribing to ar_pose_marker")

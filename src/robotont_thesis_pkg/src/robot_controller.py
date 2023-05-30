@@ -10,6 +10,9 @@ from geometry_msgs.msg import Twist
 from ar_track_alvar_msgs.msg import AlvarMarkers
 from math import atan2, sqrt
 from std_msgs.msg import String
+from robotont_thesis_pkg.srv import Robotont, RobotontRequest
+import sys
+
 
 #parameters for AR tag detection
 MAX_LIN_VEL = 0.07
@@ -233,31 +236,27 @@ def main():
 
         rospy.Subscriber("ar_pose_marker", AlvarMarkers, callback)
         rospy.loginfo("Succesfully subscribed to ar pose markers ")       
-           
-    # Wait for the sorting server to become available
-    rospy.wait_for_service('sorting')
 
-    # Create a proxy for the sorting service
-    sorting_service = rospy.ServiceProxy('sorting', Trigger)
-
-    # Check if the robot is in position
     while not rospy.is_shutdown():
         if tag_goal_finished == True:
 
-            rospy.loginfo("Starting sorting process...")
-            # Send a request to start the sorting process
-            response = sorting_service(TriggerRequest())
-            if response.success:
-                    rospy.loginfo("Sorting process done.")
-                    back_to_base= True
-                    twist_msg.linear.x = 0.0
-                    twist_msg.linear.y = 0.0
-                    twist_msg.angular.z =0.5
-                    cmd_vel_pub.publish(twist_msg)
-                    print("Rotating")
-                    
-                    movebase_client()
-                    break
+            
+
+        # Wait for the sorting service to become available
+        rospy.wait_for_service('robotont')
+        rospy.loginfo("Starting service")
+        sorting_service = rospy.ServiceProxy('robotont', Robotont)
+
+        rospy.loginfo("sending request...")
+
+        # Create a TriggerRequest object and set the string data
+        request = RobotontRequest(req= [6,7])
+        
+        # Send the request to start the sorting process
+        response = sorting_service(request)
+        if response.success:
+                rospy.loginfo("Free to go")
+
     rospy.spin()
 
 
@@ -269,3 +268,4 @@ if __name__ == '__main__':
 
     except rospy.ROSInterruptException:
         rospy.loginfo("Navigation test finished.")
+

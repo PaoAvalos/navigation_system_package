@@ -9,7 +9,7 @@
 
   <arg name="lidar" default="true"/>
 
- <!-- <include file="$(find robotont_thesis_pkg)/launch/amcl.launch">
+  <include file="$(find robotont_thesis_pkg)/launch/amcl.launch">
       <arg name="__ns" value="$(arg __ns)"/>
   </include>
 
@@ -19,7 +19,7 @@
    
   <include file="$(find robotont_thesis_pkg)/launch/transforms.launch">
         <arg name="__ns" value="$(arg __ns)"/>
-  </include>   -->
+  </include>   
 
   <group if="$(arg lidar)">
     <include file = "$(find robotont_thesis_pkg)/launch/distance_from_depth_image_with_lidar.launch">
@@ -32,5 +32,12 @@
             <arg name="__ns" value="$(arg __ns)"/>
     </include>
   </group>  -->
+
+
+  <!-- <include file="$(find robotont_thesis_pkg)/launch/ar_detection.launch">
+        <arg name="__ns" value="$(arg __ns)"/>
+  </include>    -->
+
+  
 
 </launch>
