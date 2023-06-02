@@ -22,16 +22,17 @@ def move_to_goal(goal_id):
     goal.target_pose.header.frame_id = "map"
 
     if goal_id == "goal1":
-        x_goal=  1.4334101676940918
-        y_goal= -8.417564392089844
-        z_goal= -0.935357373645112
-        w_goal= 0.35370409040286555
-
+        x_goal=  0.14046257734298706
+        y_goal= -4.143133640289307
+        z_goal= -0.2853129993437435
+        w_goal= 0.9584343965058209
+        
     elif goal_id == "base":
-        x_goal=  18
-        y_goal= -8
-        z_goal= -0.5
-        w_goal= 0.65
+        x_goal=  2.7663493156433105
+        y_goal= -0.7572194337844849
+        z_goal= 0.9683679394633669
+        w_goal= 0.249526619460676
+
 
     goal.target_pose.pose.position.x = x_goal
     goal.target_pose.pose.position.y = y_goal
@@ -43,12 +44,13 @@ def move_to_goal(goal_id):
 
     # Create a SimpleActionClient for MoveBase
     move_base_client = SimpleActionClient("move_base", MoveBaseAction)
-    move_base_client.wait_for_server()
-    rospy.loginfo("Connected to move_base server")
-
     # Send the goal to MoveBase and wait for completion
+    move_base_client.wait_for_server()
     move_base_client.send_goal(goal)
+    print("sent goal")
     move_base_client.wait_for_result()
+
+    #here should wait until the movebase is finished
 
     # Check if the navigation was successful
     if move_base_client.get_state() == actionlib.GoalStatus.SUCCEEDED:
@@ -59,7 +61,7 @@ def move_to_goal(goal_id):
     else:
         # Move base client was not successful, send "AR_Recovery" mode
         print("not successful")
-        mode = "AR_Adjustment"
+        mode = "AR_Recovery"
 
     
 def main():
@@ -71,28 +73,29 @@ def main():
     rospy.loginfo("Starting AR request")
 
     navigation_service = rospy.ServiceProxy('navigation', Navigation)
-    mode_request = NavigationRequest(mode = "AR_Adjust")
-    navigation_response = navigation_service(mode_request)
+    mode_request = NavigationRequest(mode = mode)
+    navigation_req = navigation_service(mode_request)
 
     
     while not rospy.is_shutdown():
         # Wait for the sorting service to become available
 
-        rospy.wait_for_service('robotont')
-        rospy.loginfo("Starting service")
-        sorting_service = rospy.ServiceProxy('robotont', Robotont)
+        # rospy.wait_for_service('robotont')
+        # rospy.loginfo("Starting service")
+        # sorting_service = rospy.ServiceProxy('robotont', Robotont)
+        print("waiting for navigation result")
 
-        if navigation_response.success:
+        if navigation_req.success:
                 rospy.loginfo("At goal will send request to kitting station")
-
-                # Create a TriggerRequest object and set the string data
-                request = RobotontRequest(req= [6,7])
+                rospy.sleep(4)
+                # # Create a TriggerRequest object and set the string data
+                # request = RobotontRequest(req= [6,7])
                 
-                # Send the request to start the kitting process
-                response = sorting_service(request)
-                if response.success:
-                        rospy.loginfo("Success! Free of payload! Back to base!")
-                        move_to_goal("base")
+                # # Send the request to start the kitting process
+                # response = sorting_service(request)
+                # if response.success:
+                #         rospy.loginfo("Success! Free of payload! Back to base!")
+                move_to_goal("base")
 
 
     rospy.spin()

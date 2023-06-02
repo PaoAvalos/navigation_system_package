@@ -23,17 +23,19 @@ k=0
 param = 0
 twist_msg = Twist()
 distance_achieved = False
-
+finish = False
 DETECTING_SPEED_ROTATION = 0.5
 side_rotation = [1, -1]
 calc_time_dur = 0
 moving = True
 rotation = False
 marker_ids = []
+cycle=False
+send_response= False
 rospy.set_param('ar_present', True)
 
 def callback(data):
-        global last_heartbeat, marker_ids, k, param, twist_msg, cmd_vel_pub, finish, distance_achieved
+        global last_heartbeat, marker_ids, k, param, twist_msg, cmd_vel_pub, finish, distance_achieved,cycle,send_response
         if len(data.markers)==0 and k<len(marker_ids):
             rotation()
         elif len(data.markers)!=0 and k<len(marker_ids):
@@ -96,14 +98,19 @@ def callback(data):
                         twist_msg.linear.y = min(max(goal_pos[1],-MAX_LIN_VEL),MAX_LIN_VEL)
                         twist_msg.angular.z = 4*min(max(angle,-MAX_ANG_VEL),MAX_ANG_VEL)
                         print("Updating cmd vel %s", twist_msg)
-                        cmd_vel_pub.publish(twist_msg)
+                        cmd_vel_pub.publish(twist_msg)       
+                        cycle= True                
                 else:
                         k=k+1
                         distance_achieved = False
         elif k>=len(marker_ids):
             rospy.set_param('ar_present', True)
             finish = True
+            if cycle:
+                  send_response=True
 
+
+            
 def rotation():
         global last_heartbeat, param, marker_ids, twist_msg, cmd_vel_pub
 
@@ -127,27 +134,24 @@ def rotation():
 
 
 def define_mode(req):
-    global marker_ids , finish
+    global marker_ids , finish, send_response
     print (req.mode)
-    if req.mode == "AR_Adjust":
+    if req.mode == "AR_Adjustment":
         marker_ids = [17]
     elif req.mode == "AR_Recovery":
         marker_ids = rospy.get_param('~marker_ids').split(",")
 
+    while not rospy.is_shutdown():
 
-    # Wait for the process to complete
-    while not finish:
-        rospy.sleep(0.1)  # Adjust the sleep duration as needed
-    
-    # Reset the completion status for future requests
-    finish = False
+        if send_response:
+                response = NavigationResponse()
+                response.success = True
+                print("Response sent") 
+        
+        return NavigationResponse(success=True)               
 
-    # Return the appropriate response
-    response = NavigationResponse()
-    response.success = True
-    
-    return response
-           
+   
+                
 def ar_demo():
         global marker_ids
         # Initialize this ROS node
@@ -161,9 +165,11 @@ def ar_demo():
         rospy.wait_for_service('navigation')
         
 
+
         # Set up subscriber for /ar_pose_marker
         rospy.loginfo("Subscribing to ar_pose_marker")
         rospy.Subscriber("ar_pose_marker", AlvarMarkers, callback)
+
 
         rospy.spin()
 
