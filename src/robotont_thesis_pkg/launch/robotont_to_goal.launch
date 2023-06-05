@@ -27,17 +27,16 @@
     </include>
   </group>
 
-  <!-- <group unless="$(arg lidar)">
+  <group unless="$(arg lidar)">
     <include file = "$(find robotont_thesis_pkg)/launch/distance_from_depth_image_without_lidar.launch">
             <arg name="__ns" value="$(arg __ns)"/>
     </include>
-  </group>  -->
+  </group>  
 
 
-  <!-- <include file="$(find robotont_thesis_pkg)/launch/ar_detection.launch">
+  <include file="$(find robotont_thesis_pkg)/launch/ar_detection.launch">
         <arg name="__ns" value="$(arg __ns)"/>
-  </include>    -->
+  </include>   
 
-  
 
 </launch>

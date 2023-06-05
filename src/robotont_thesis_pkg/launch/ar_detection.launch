@@ -20,8 +20,6 @@
     <remap from="camera_info"   to="camera/color/camera_info" />
   </node>
   
-  <!-- <include file = "$(find robotont_laserscan_to_distance)/launch/distance_from_depth_image.launch"/> -->
-
   <node name="nav_tags" pkg="robotont_thesis_pkg" type="nav_tags.py" output="screen">
     <param name="marker_ids" type="string" value="$(arg marker_ids)" />
   </node>

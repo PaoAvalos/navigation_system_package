@@ -1,0 +1,26 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/pao/thesis/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/pao/thesis/src/robotont/ar_track_alvar/ar_track_alvar/include/**",
+        "/home/pao/thesis/src/hls_lfcd_lds_driver/include/**",
+        "/home/pao/thesis/src/robotont/robotont_demos/include/**",
+        "/home/pao/thesis/src/robotont/robotont_driver/include/**",
+        "/home/pao/thesis/src/robotont/serial/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
