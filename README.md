@@ -1,2 +1,2 @@
-# robotont_thesis
-Repo for robotont necesary files and packages, for thesis project 
+# Navigation system package
+Repository containing the ROS Package necessary for the payload transportation system of the learning factory project. 

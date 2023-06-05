@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<launch>
+  <!--
+    '__ns' is needed as an explicit argument because it does not propagate as an argument to the included launch files.
+    as eval may not contain double underscore expressions, a new argument (eval_underscore_bypass) is defined to by-pass this issue.
+    when a namespace is specified, it is also converted into prefix with a trailing slash.
+  -->
+  <arg name="__ns" default=""/>
+  <arg name="eval_underscore_bypass" value="$(arg __ns)"/>
+  <arg if="$(eval eval_underscore_bypass == '')" name="prefix" default=''/> 
+  <arg unless="$(eval eval_underscore_bypass == '')" name="prefix" default="$(arg __ns)/"/>
+
+  <node name="depthimage_to_laserscan" pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" >
+    <remap from="image" to="camera/depth/image_rect_raw"/>
+    <remap from="camera_info" to="camera/depth/camera_info"/>
+    <remap from="scan" to="camera_scan"/>
+    <rosparam command="load" file="$(find robotont_laserscan_to_distance)/config/laser_params.yaml" subst_value="true"/>
+  </node>
+  
+  <node pkg="robotont_thesis_pkg" name="laserscan_to_distance_with_lidar" type="laserscan_to_distance_with_lidar.py" output="screen" />
+</launch>

@@ -6,33 +6,38 @@
   <arg if="$(eval eval_underscore_bypass == '')" name="prefix" default=''/> 
   <arg unless="$(eval eval_underscore_bypass == '')" name="prefix" default="$(arg __ns)/"/>
   <arg name="mapping_method" default="gmapping"/>
-  <!-- <param name="odom/child_frame" value="/robotont/base_footprint"/> -->
-  
-  <!-- <group ns="robotont"> -->
 
-<!-- Launching the amcl node with correct parameters -->
+  <arg name="lidar" default="true"/>
+
   <include file="$(find robotont_thesis_pkg)/launch/amcl.launch">
       <arg name="__ns" value="$(arg __ns)"/>
   </include>
-<!-- 
-  <include file="$(find robotont_demos)/launch/2d_slam_navigation.launch">
+
+  <include file="$(find robotont_navigation)/launch/move_base.launch">
     <arg name="__ns" value="$(arg __ns)"/>
   </include>
-  
-<! Launching the transforms-->
-
+   
   <include file="$(find robotont_thesis_pkg)/launch/transforms.launch">
         <arg name="__ns" value="$(arg __ns)"/>
-  </include> 
+  </include>   
 
-<!-- for using ar track with camera  -->
- <!-- <include file = "$(find robotont_laserscan_to_distance)/launch/distance_from_depth_image.launch"/> -->
+  <group if="$(arg lidar)">
+    <include file = "$(find robotont_thesis_pkg)/launch/distance_from_depth_image_with_lidar.launch">
+      <arg name="__ns" value="$(arg __ns)"/>
+    </include>
+  </group>
 
-  <arg name="map_file" value="$(find robotont_thesis_pkg)/maps/delta_room_lidar7.yaml"/>
-  <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)"> 
-    <param name="frame_id" value="$(arg prefix)map" />
+  <!-- <group unless="$(arg lidar)">
+    <include file = "$(find robotont_thesis_pkg)/launch/distance_from_depth_image_without_lidar.launch">
+            <arg name="__ns" value="$(arg __ns)"/>
+    </include>
+  </group>  -->
 
-  </node> 
 
-<!-- </group> -->
+  <!-- <include file="$(find robotont_thesis_pkg)/launch/ar_detection.launch">
+        <arg name="__ns" value="$(arg __ns)"/>
+  </include>    -->
+
+  
+
 </launch>
